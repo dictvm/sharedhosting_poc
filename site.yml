@@ -1,0 +1,94 @@
+---
+
+- name: Configure SELinux Sandbox
+  hosts: all
+  become: yes
+  tasks:
+    - name: Set SELinux to Enforcing
+      selinux: policy=targeted state=enforcing
+      register: selinux_state
+
+    - name: Reboot to set SELinux state
+      command: sudo /usr/bin/systemctl reboot
+      when: selinux_state|changed
+
+    - name: Wait for reboot
+      wait_for:
+        port: 22
+        state: started
+
+    - name: Install EPEL
+      yum:
+        name: epel-release
+        state: present
+      register: epelstate
+
+    - name: Install requirements
+      package:
+        name: "{{ item }}"
+        state: present
+        update_cache: "{{ epelstate | changed }}"
+      with_items:
+        - httpd
+        - setroubleshoot-server
+        - setools-console
+        - mcstrans
+        - policycoreutils-python
+        - selinux-policy-devel
+
+    - name: Start services
+      service:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      with_items:
+        - httpd
+
+    - name: Open firewall for httpd
+      firewalld:
+        service: http
+        permanent: true
+        state: enabled
+
+    - name: Create group
+      group:
+        name: shelluser
+        state: present
+
+    - name: Create user
+      user:
+        name: selinuxuser
+        groups: shelluser
+        state: present
+
+    - name: Copy SELinux shelluser policy template
+      template:
+        src: shelluser.te.j2
+        dest: /tmp/shelluser.te
+
+    - name: Compile SELinux policy
+      shell: make -f /usr/share/selinux/devel/Makefile shelluser.pp
+      args:
+        chdir: /tmp/
+      register: shelluser_policy
+      changed_when: "'is up to date' not in shelluser_policy.stdout"
+
+    - name: Import compiled SELinux policy
+      shell: semodule -i shelluser.pp && semodule -l|grep shelluser
+      args:
+        chdir: /tmp/
+      register: semodule_state
+      changed_when: "'shelluser' not in semodule_state.stdout"
+
+    - name: Create SELinux user
+      shell: semanage user -a -R "shelluser_r" shelluser_u && semanage user -l |grep shelluser_u
+      register: semanage_state
+      changed_when: "'shelluser_u' not in semanage_state.stdout"
+
+    - name: Add targeted user context
+      template:
+        src: shelluser_u.j2
+        dest: /etc/selinux/targeted/contexts/users/shelluser
+
+    - name: Add user to SELinux context
+      command: usermod -Z shelluser_u selinuxuser

@@ -1,0 +1,36 @@
+# {{ ansible_managed }}
+
+policy_module(shelluser, 1.0)
+
+userdom_restricted_user_template(shelluser)
+
+sysnet_dns_name_resolve(shelluser_t)
+
+allow shelluser_t self:tcp_socket create_stream_socket_perms;
+corenet_tcp_sendrecv_all_if(shelluser_t)
+corenet_tcp_sendrecv_all_nodes(shelluser_t)
+corenet_tcp_sendrecv_all_ports(shelluser_t)
+
+allow shelluser_t self:udp_socket { create_socket_perms listen };
+corenet_udp_sendrecv_all_if(shelluser_t)
+corenet_udp_sendrecv_all_nodes(shelluser_t)
+corenet_udp_sendrecv_all_ports(shelluser_t)
+
+corenet_tcp_connect_jabber_client_port(shelluser_t)
+corenet_tcp_connect_http_port(shelluser_t)
+
+type shelluser_port_t, port_type;
+
+allow shelluser_t shelluser_port_t:tcp_socket {
+    name_connect
+    send_msg
+    recv_msg };
+
+allow shelluser_t proc_t:dir { getattr read };
+allow shelluser_t proc_t:file { getattr open read };
+
+screen_role_template(shelluser, shelluser_r, shelluser_t)
+
+allow shelluser_t screen_var_run_t:dir { getattr open read search ioctl };
+allow shelluser_t screen_var_run_t:sock_file { getattr read };
+allow shelluser_t screen_var_run_t:socket { getattr read connect ioctl };
