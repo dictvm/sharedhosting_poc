@@ -1,5 +1,8 @@
 # SELinux Basic Usage
 
+**NOTE: SOMETHING'S BROKEN RIGHT NOW, WILL FIX SOON :)**
+
+
 # Random information
 * New files and directories inherent the parent directory's SELinux type
 
@@ -19,7 +22,7 @@ The following SELinux User Capabilities are available:
 - Role
 - Domain
 
-An overview of all SELinux-context associations with Linux accounts can be found in `/etc/selinux/targeted/modules/active/seusers`. 
+An overview of all SELinux-context associations with Linux accounts can be found in `/etc/selinux/targeted/modules/active/seusers`.
 
 ## Basics
 Labeling
