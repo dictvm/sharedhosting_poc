@@ -8,15 +8,23 @@
       selinux: policy=targeted state=enforcing
       register: selinux_state
 
+    - debug: var=selinux_state
+
     - name: Reboot to set SELinux state
       command: sudo /usr/bin/systemctl reboot
+      async: 0
+      poll: 0
+      ignore_errors: true
       when: selinux_state|changed
 
     - name: Wait for reboot
       wait_for:
-        port: 22
+        host: "{{ inventory_hostname }}"
         state: started
-
+        delay: 30
+        timeout: 300
+      when: selinux_state|changed
+      
     - name: Install EPEL
       yum:
         name: epel-release
