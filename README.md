@@ -1,26 +1,33 @@
 # SELinux Basic Usage
 
 # Random information
-New files and directories inherent the parent directory's SELinux type
+* New files and directories inherent the parent directory's SELinux type
 
-- id -Z
-Shows current user's SELinux context
+id -Z
+- Shows current user's SELinux context
 
-- ls -Z
-Show SELinux context of files or directories
+ls -Z
+- Show SELinux context of files or directories
 
-- useradd -Z
-- usermod -Z selinux_policy user
+useradd -Z
+usermod -Z selinux_policy user
+
+## Trivia
 
 The following SELinux User Capabilities are available:
 - User
 - Role
 - Domain
 
-## Tools
+An overview of all SELinux-context associations with Linux accounts can be found in `/etc/selinux/targeted/modules/active/seusers`. 
 
-seinfo
-- Query SELinux policies
+## Basics
+Labeling
+- Files, processes, ports
+- user:role:type:level(optional)
+Type Enforcement
+
+## Tools
 
 setenforce
 - set Enforce/Permissive
