@@ -8,23 +8,36 @@
       selinux: policy=targeted state=enforcing
       register: selinux_state
 
-    - debug: var=selinux_state
+    - name: Get SELinux label status
+      shell: ls -Z | grep redhat-release
+      args:
+        chdir: /etc/
+      register: selinux_label_state
+      ignore_errors: true
+      changed_when: false
+
+    - name: Enable relabeling of filesystem during reboot
+      file:
+        path: /.autorelabel
+        state: touch
+      when: "'system_u:object_r:etc_t:s0' not in selinux_label_state.stdout"
 
     - name: Reboot to set SELinux state
-      command: sudo /usr/bin/systemctl reboot
+      shell: /sbin/shutdown -r 1
       async: 0
       poll: 0
       ignore_errors: true
       when: selinux_state|changed
 
-    - name: Wait for reboot
+    - name: Wait for reboot and relabeling to finish
       wait_for:
-        host: "{{ inventory_hostname }}"
-        state: started
-        delay: 30
+        host: "{{ ansible_default_ipv4.address }}"
+        port: 22
+        delay: 90
         timeout: 300
+        state: started
       when: selinux_state|changed
-      
+
     - name: Install EPEL
       yum:
         name: epel-release
@@ -58,15 +71,9 @@
         permanent: true
         state: enabled
 
-    - name: Create group
-      group:
-        name: shelluser
-        state: present
-
     - name: Create user
       user:
-        name: selinuxuser
-        groups: shelluser
+        name: testshelluser
         state: present
 
     - name: Copy SELinux shelluser policy template
@@ -86,17 +93,19 @@
       args:
         chdir: /tmp/
       register: semodule_state
-      changed_when: "'shelluser' not in semodule_state.stdout"
+#      changed_when: "'shelluser' not in semodule_state.stdout"
 
     - name: Create SELinux user
       shell: semanage user -a -R "shelluser_r" shelluser_u && semanage user -l |grep shelluser_u
       register: semanage_state
-      changed_when: "'shelluser_u' not in semanage_state.stdout"
+#      changed_when: "'shelluser_u' not in semanage_state.stdout"
 
     - name: Add targeted user context
       template:
         src: shelluser_u.j2
-        dest: /etc/selinux/targeted/contexts/users/shelluser
+        dest: /etc/selinux/targeted/contexts/users/shelluser_u
 
     - name: Add user to SELinux context
-      command: usermod -Z shelluser_u selinuxuser
+      shell: usermod -Z shelluser_u testshelluser && grep testshelluser /etc/selinux/targeted/modules/active/seusers
+      register: userstate
+#      changed_when: "'testshelluser' not in userstate.stdout"
