@@ -1,10 +1,10 @@
 # SELinux Basic Usage
 
-**NOTE: SOMETHING'S BROKEN RIGHT NOW, WILL FIX SOON :)**
-
-
 # Random information
 * New files and directories inherent the parent directory's SELinux type
+
+## Naming
+Identity: An identity is not the traditional UNIX UID. An SELinux identity can be assigned to one or more specific UNIX UIDs. The identity can be switched
 
 id -Z
 - Shows current user's SELinux context
@@ -63,3 +63,6 @@ semodule
 
 matchpathcon
 - compare current security context with default security context
+
+sepolicy
+- New tool introduced in RHEL7. Allows for easier policy creation.

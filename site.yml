@@ -3,6 +3,10 @@
 - name: Configure SELinux Sandbox
   hosts: all
   become: yes
+
+  vars:
+    user: anotheruser
+
   tasks:
     - name: Set SELinux to Enforcing
       selinux: policy=targeted state=enforcing
@@ -16,7 +20,7 @@
       ignore_errors: true
       changed_when: false
 
-    - name: Enable relabeling of filesystem during reboot
+    - name: Enable relabel of filesystem during reboot
       file:
         path: /.autorelabel
         state: touch
@@ -46,16 +50,21 @@
 
     - name: Install requirements
       package:
-        name: "{{ item }}"
+        name: "{{ item }}"
         state: present
-        update_cache: "{{ epelstate | changed }}"
+        update_cache: "{{ epelstate | changed }}"
       with_items:
         - httpd
         - setroubleshoot-server
         - setools-console
         - mcstrans
         - policycoreutils-python
+        - policycoreutils-restorecond
         - selinux-policy-devel
+        - htop
+        - python34
+        - zsh
+        - tmux
 
     - name: Start services
       service:
@@ -64,6 +73,7 @@
         state: started
       with_items:
         - httpd
+        - restorecond
 
     - name: Open firewall for httpd
       firewalld:
@@ -73,39 +83,48 @@
 
     - name: Create user
       user:
-        name: testshelluser
+        name: "{{ user }}"
         state: present
 
     - name: Copy SELinux shelluser policy template
       template:
         src: shelluser.te.j2
-        dest: /tmp/shelluser.te
+        dest: /tmp/{{ user }}.te
 
     - name: Compile SELinux policy
-      shell: make -f /usr/share/selinux/devel/Makefile shelluser.pp
+      shell: make -f /usr/share/selinux/devel/Makefile {{ user }}.pp
       args:
         chdir: /tmp/
       register: shelluser_policy
-      changed_when: "'is up to date' not in shelluser_policy.stdout"
 
     - name: Import compiled SELinux policy
-      shell: semodule -i shelluser.pp && semodule -l|grep shelluser
+      shell: semodule -i {{ user }}.pp
       args:
         chdir: /tmp/
       register: semodule_state
-#      changed_when: "'shelluser' not in semodule_state.stdout"
 
     - name: Create SELinux user
-      shell: semanage user -a -R "shelluser_r" shelluser_u && semanage user -l |grep shelluser_u
+      shell: semanage user -a -R "{{ user }}_r" {{ user }}_u
       register: semanage_state
-#      changed_when: "'shelluser_u' not in semanage_state.stdout"
 
     - name: Add targeted user context
       template:
         src: shelluser_u.j2
-        dest: /etc/selinux/targeted/contexts/users/shelluser_u
+        dest: /etc/selinux/targeted/contexts/users/{{ user }}
 
-    - name: Add user to SELinux context
-      shell: usermod -Z shelluser_u testshelluser && grep testshelluser /etc/selinux/targeted/modules/active/seusers
+    - name: Add UNIX user to SELinux context
+      shell: usermod -Z {{ user }}_u {{ user }}
       register: userstate
-#      changed_when: "'testshelluser' not in userstate.stdout"
+
+    - name: Create user httpdocs
+      file:
+        path: /var/www/virtual/{{ user }}
+        state: directory
+        seuser: "{{ user }}_u"
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Confine user to home directory
+      file:
+        path: /home/{{ user }}
+        seuser: "{{ user }}_u"
