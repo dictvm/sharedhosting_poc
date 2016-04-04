@@ -20,6 +20,8 @@
       ignore_errors: true
       changed_when: false
 
+    - debug: var=selinux_label_state
+
     - name: Enable relabel of filesystem during reboot
       file:
         path: /.autorelabel
@@ -27,7 +29,7 @@
       when: "'system_u:object_r:etc_t:s0' not in selinux_label_state.stdout"
 
     - name: Reboot to set SELinux state
-      shell: /sbin/shutdown -r 1
+      shell: /sbin/shutdown -r now
       async: 0
       poll: 0
       ignore_errors: true
@@ -65,6 +67,11 @@
         - python34
         - zsh
         - tmux
+        - rsync
+        - nc
+        - ruby
+        - git
+        - "@Development Tools"
 
     - name: Start services
       service:
@@ -104,16 +111,16 @@
       register: semodule_state
 
     - name: Create SELinux user
-      shell: semanage user -a -R "{{ user }}_r" {{ user }}_u
+      shell: semanage user -a -R "{{ user }}_r" "{{ user }}_u"
       register: semanage_state
 
     - name: Add targeted user context
       template:
         src: shelluser_u.j2
-        dest: /etc/selinux/targeted/contexts/users/{{ user }}
+        dest: /etc/selinux/targeted/contexts/users/{{ user }}_u
 
     - name: Add UNIX user to SELinux context
-      shell: usermod -Z {{ user }}_u {{ user }}
+      shell: usermod -Z "{{ user }}_u" "{{ user }}"
       register: userstate
 
     - name: Create user httpdocs
@@ -128,3 +135,22 @@
       file:
         path: /home/{{ user }}
         seuser: "{{ user }}_u"
+
+    - name: Create SSH configuration directory
+      file:
+        path: /home/{{ user }}/.ssh
+        state: directory
+
+    - name: Enable SSH access for {{ user }}
+      command: cp /home/vagrant/.ssh/authorized_keys /home/{{ user }}/.ssh/authorized_keys && chown -R {{ user }}:{{ user }} /home/{{ user }}/.ssh/authorized_keys
+      args:
+        creates: /home/{{ user }}/.ssh/authorized_keys
+
+    - name: Fix directory permissions
+      file:
+        path: /home/{{ user }}/.ssh
+        owner: "{{ user }}"
+        group: "{{ user }}"
+
+    - name: Enable outgoing SSH for {{ user }}
+      command: semanage port -m -t {{ user }}_port_t -p tcp 22
