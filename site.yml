@@ -142,15 +142,14 @@
         state: directory
 
     - name: Enable SSH access for {{ user }}
-      command: cp /home/vagrant/.ssh/authorized_keys /home/{{ user }}/.ssh/authorized_keys && chown -R {{ user }}:{{ user }} /home/{{ user }}/.ssh/authorized_keys
-      args:
-        creates: /home/{{ user }}/.ssh/authorized_keys
+      command: cp /home/vagrant/.ssh/authorized_keys /home/{{ user }}/.ssh/authorized_keys
 
     - name: Fix directory permissions
       file:
         path: /home/{{ user }}/.ssh
         owner: "{{ user }}"
         group: "{{ user }}"
+        recurse: true
 
     - name: Enable outgoing SSH for {{ user }}
       command: semanage port -m -t {{ user }}_port_t -p tcp 22
