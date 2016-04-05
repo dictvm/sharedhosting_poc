@@ -16,13 +16,14 @@ corenet_udp_sendrecv_all_if({{ user }}_t)
 corenet_udp_sendrecv_all_nodes({{ user }}_t)
 corenet_udp_sendrecv_all_ports({{ user }}_t)
 
-corenet_tcp_connect_jabber_client_port({{ user }}_t)
 corenet_tcp_connect_http_port({{ user }}_t)
+corenet_tcp_connect_all_ports({{ user }}_t) # allow all outgoing
 
 type {{ user }}_port_t, port_type;
 
 allow {{ user }}_t {{ user }}_port_t:tcp_socket {
     name_connect
+    name_bind
     send_msg
     recv_msg };
 
