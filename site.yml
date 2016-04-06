@@ -171,7 +171,7 @@
         path: /home/{{ user }}/.ssh
         state: directory
 
-    - name: Enable SSH access for {{ user }}
+    - name: Enable SSH access for {{ user }} using vagrant public key
       command: cp /home/vagrant/.ssh/authorized_keys /home/{{ user }}/.ssh/authorized_keys
 
     - name: Fix directory permissions
