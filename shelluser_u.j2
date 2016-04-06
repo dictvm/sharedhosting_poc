@@ -1,8 +1,8 @@
 # {{ ansible_managed }}
 
-anotheruser_r:anotheruser_t:s0  anotheruser_r:anotheruser_t
-system_r:crond_t                anotheruser_r:anotheruser_t
-system_r:initrc_su_t            anotheruser_r:anotheruser_t
-system_r:local_login_t          anotheruser_r:anotheruser_t
-system_r:remote_login_t         anotheruser_r:anotheruser_t
-system_r:sshd_t                 anotheruser_r:anotheruser_t
+{{ user }}_r:{{ user }}_t:s0  {{ user }}_r:{{ user }}_t
+system_r:crond_t                {{ user }}_r:{{ user }}_t
+system_r:initrc_su_t            {{ user }}_r:{{ user }}_t
+system_r:local_login_t          {{ user }}_r:{{ user }}_t
+system_r:remote_login_t         {{ user }}_r:{{ user }}_t
+system_r:sshd_t                 {{ user }}_r:{{ user }}_t
