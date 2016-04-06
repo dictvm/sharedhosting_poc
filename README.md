@@ -1,6 +1,6 @@
 # Control Groups
 
-We can now confine users to only use specific resources.
+We can now confine users to only use specified resources.
 
 Users created using `site.yml` will be created with a limit of 512CPU shares (out of 1024, which equals to 50% of all cores) and 1GB of RAM (cumulated virtual memory of the user).
 
