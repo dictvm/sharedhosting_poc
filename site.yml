@@ -24,8 +24,6 @@
       ignore_errors: true
       changed_when: false
 
-    - debug: var=selinux_label_state
-
     - name: Enable relabel of filesystem during reboot
       file:
         path: /.autorelabel
