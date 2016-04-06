@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+<Directory /var/www/virtual/{{ user }}>
+AllowOverride AuthConfig FileInfo Indexes Limit Options=ExecCGI,Includes,Indexes,MultiViews,SymLinksIfOwnerMatch
+Options +Includes SymLinksIfOwnerMatch
+</Directory>
+
+<VirtualHost {{ ansible_default_ipv4 }}:80>
+ServerName {{ user }}.{{ ansible_fqdn }}
+ServerAdmin support@uberspace.de
+SuexecUserGroup {{ user }} {{ user }}
+DocumentRoot /var/www/virtual/{{ user }}/html
+ErrorLog /home/{{ user }}/error_log
+Alias /icons/ "/var/www/virtual/{{ user }}/html/icons/"
+
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteCond %{REQUEST_URI} !^/f?cgi-bin/
+RewriteCond /var/www/virtual/{{ user }}/%{HTTP_HOST} -d
+RewriteRule (.*) /var/www/virtual/{{ user }}/%{HTTP_HOST}/$1
+
+</VirtualHost>
