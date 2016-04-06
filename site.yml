@@ -7,6 +7,10 @@
   vars:
     user: anotheruser
 
+  handlers:
+    - name: reload httpd
+      service: name=httpd state=reloaded
+
   tasks:
     - name: Set SELinux to Enforcing
       selinux: policy=targeted state=enforcing
@@ -181,3 +185,18 @@
 
     - name: Enable outgoing SSH for {{ user }}
       command: semanage port -m -t {{ user }}_port_t -p tcp 22
+
+    - name: Enable VirtualHost configuration for {{ user }}
+      template:
+        src: virtualhost.conf.j2
+        dest: /etc/httpd/conf.d/
+      notify: reload httpd
+
+#    - name: Enable booleans for {{ user }}
+#      seeboolean: "{{ item }}"
+#        persistent: yes
+#        state: yes
+#      with_items:
+#        - allow_user_mysql_connect
+#        - allow_user_postgresql_connect
+#        - selinuxuser_ping
