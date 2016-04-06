@@ -72,6 +72,8 @@
         - ruby
         - git
         - "@Development Tools"
+        - libcgroup-tools
+        - http://pkgs.repoforge.org/stress/stress-1.0.2-1.el7.rf.x86_64.rpm
 
     - name: Start services
       service:
@@ -88,10 +90,35 @@
         permanent: true
         state: enabled
 
+    - name: Create group
+      group:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "{{ user }}"
+
     - name: Create user
       user:
         name: "{{ user }}"
         state: present
+        group: "{{ item }}"
+      with_items:
+        - "{{ user }}"
+
+    - name: Get UID
+      stat:
+        path: /home/{{ user }}
+      register: homedir
+      ignore_errors: true
+      changed_when: false
+
+    - name: Enable User Slice for {{ homedir.stat.uid }}/{{ user }}
+      command: systemctl start user-{{ homedir.stat.uid }}.slice
+      register: slice_state
+
+    - name: Create Control Group
+      command: systemctl set-property user-{{ homedir.stat.uid }}.slice CPUShares=512 MemoryLimit=1024M
+      register: cgcreate_state
 
     - name: Copy SELinux shelluser policy template
       template:
@@ -134,6 +161,7 @@
     - name: Confine user to home directory
       file:
         path: /home/{{ user }}
+        state: directory
         seuser: "{{ user }}_u"
 
     - name: Create SSH configuration directory

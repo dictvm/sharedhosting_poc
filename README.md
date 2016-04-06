@@ -1,3 +1,36 @@
+# Control Groups
+
+We can now confine users to only use specific resources.
+
+Users created using `site.yml` will be created with a limit of 512CPU shares (out of 1024, which equals to 50% of all cores) and 1GB of RAM (cumulated virtual memory of the user).
+
+### Verify
+Login is as our test user. Defaults to `anotheruser`:
+
+`ssh anotheruser@127.0.0.1 -p 2222 -i .vagrant/machines/selinux/virtualbox/private_key`
+
+Run the following command as `anotheruser`:
+`$ stress --vm 10 --vm-bytes 120M --timeout 60s`
+
+Run the following command as user `vagrant`. Login via `vagrant ssh`:
+
+`systemd-cgtop`
+
+Pay close attention to the `%CPU` and `Memory` columns showing the Slice `user-1001`:
+
+`/user.slice/user-1001.slice                     14  327.5   276.3M        -        -`
+
+The CPU percentage should never grow beyond 512 while the Memory usage should never grow beyond 1GB of RAM.
+
+You can also cross-check the configured limits using the following commands:
+
+```
+$ systemctl show -p CPUShares user-1001.slice
+MemoryLimit=1073741824
+$ systemctl show -p MemoryLimit user-1001.slice
+CPUShares=512
+```
+
 # SELinux Basic Usage
 
 # Random information
