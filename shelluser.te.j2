@@ -1,37 +1,40 @@
 # {{ ansible_managed }}
 
-policy_module({{ user }}, 1.0)
+policy_module(uberspace_{{ user }}, 1.0)
 
-userdom_restricted_user_template({{ user }})
+userdom_restricted_user_template(uberspace_{{ user }})
 
-sysnet_dns_name_resolve({{ user }}_t)
+sysnet_dns_name_resolve(uberspace_{{ user }}_t)
 
-allow {{ user }}_t self:tcp_socket create_stream_socket_perms;
-corenet_tcp_sendrecv_all_if({{ user }}_t)
-corenet_tcp_sendrecv_all_nodes({{ user }}_t)
-corenet_tcp_sendrecv_all_ports({{ user }}_t)
+allow uberspace_{{ user }}_t self:tcp_socket create_stream_socket_perms;
+corenet_tcp_sendrecv_all_if(uberspace_{{ user }}_t)
+corenet_tcp_sendrecv_all_nodes(uberspace_{{ user }}_t)
+corenet_tcp_sendrecv_all_ports(uberspace_{{ user }}_t)
 
-allow {{ user }}_t self:udp_socket { create_socket_perms listen };
-corenet_udp_sendrecv_all_if({{ user }}_t)
-corenet_udp_sendrecv_all_nodes({{ user }}_t)
-corenet_udp_sendrecv_all_ports({{ user }}_t)
+allow uberspace_{{ user }}_t self:udp_socket { create_socket_perms listen };
+corenet_udp_sendrecv_all_if(uberspace_{{ user }}_t)
+corenet_udp_sendrecv_all_nodes(uberspace_{{ user }}_t)
+corenet_udp_sendrecv_all_ports(uberspace_{{ user }}_t)
 
-corenet_tcp_connect_http_port({{ user }}_t)
-corenet_tcp_connect_all_ports({{ user }}_t) # allow all outgoing
+corenet_tcp_connect_all_ports(uberspace_{{ user }}_t) # allow all outgoing
 
-type {{ user }}_port_t, port_type;
+type uberspace_{{ user }}_port_t, port_type;
 
-allow {{ user }}_t {{ user }}_port_t:tcp_socket {
+allow uberspace_{{ user }}_t uberspace_{{ user }}_port_t:tcp_socket {
     name_connect
     name_bind
     send_msg
     recv_msg };
 
-allow {{ user }}_t proc_t:dir { getattr read };
-allow {{ user }}_t proc_t:file { getattr open read };
+allow uberspace_{{ user }}_t proc_t:dir { getattr read };
+allow uberspace_{{ user }}_t proc_t:file { getattr open read };
 
-screen_role_template({{ user }}, {{ user }}_r, {{ user }}_t)
+screen_role_template(uberspace_{{ user }}, uberspace_{{ user }}_r, uberspace_{{ user }}_t)
 
-allow {{ user }}_t screen_var_run_t:dir { getattr open read search ioctl };
-allow {{ user }}_t screen_var_run_t:sock_file { getattr read };
-allow {{ user }}_t screen_var_run_t:socket { getattr read connect ioctl };
+allow uberspace_{{ user }}_t screen_var_run_t:dir { getattr open read search ioctl };
+allow uberspace_{{ user }}_t screen_var_run_t:sock_file { getattr read };
+allow uberspace_{{ user }}_t screen_var_run_t:socket { getattr read connect ioctl };
+
+# Allow users to only bind on specified ports.
+allow uberspace_{{ user }}_t uberspace_{{ user }}_port_t:tcp_socket name_bind;
+allow uberspace_{{ user }}_t uberspace_{{ user }}_port_t:udp_socket name_bind;

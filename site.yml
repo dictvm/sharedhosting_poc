@@ -31,20 +31,22 @@
       when: "'system_u:object_r:etc_t:s0' not in selinux_label_state.stdout"
 
     - name: Reboot to set SELinux state
-      shell: /sbin/shutdown -r now
+#      shell: /sbin/shutdown -r now
+      shell: nohup bash -c sleep 2s && reboot &
       async: 0
       poll: 0
       ignore_errors: true
       when: selinux_state|changed
+      register: reboot_necessary
 
     - name: Wait for reboot and relabeling to finish
       wait_for:
-        host: "{{ ansible_default_ipv4.address }}"
+        host: "{{ inventory_hostname }}"
         port: 22
-        delay: 90
+        delay: 10
         timeout: 300
         state: started
-      when: selinux_state|changed
+      when: reboot_necessary|changed
 
     - name: Install EPEL
       yum:
@@ -125,46 +127,49 @@
     - name: Copy SELinux shelluser policy template
       template:
         src: shelluser.te.j2
-        dest: /tmp/{{ user }}.te
+        dest: /tmp/uberspace_{{ user }}.te
 
     - name: Compile SELinux policy
-      shell: make -f /usr/share/selinux/devel/Makefile {{ user }}.pp
+      shell: make -f /usr/share/selinux/devel/Makefile uberspace_{{ user }}.pp
       args:
         chdir: /tmp/
       register: shelluser_policy
 
     - name: Import compiled SELinux policy
-      shell: semodule -i {{ user }}.pp
+      shell: semodule -i uberspace_{{ user }}.pp
       args:
         chdir: /tmp/
       register: semodule_state
 
     - name: Create SELinux user
-      shell: semanage user -a -R "{{ user }}_r" "{{ user }}_u"
+      shell: semanage user -a -R "uberspace_{{ user }}_r" "uberspace_{{ user }}_u"
       register: semanage_state
 
     - name: Add targeted user context
       template:
         src: shelluser_u.j2
-        dest: /etc/selinux/targeted/contexts/users/{{ user }}_u
+        dest: /etc/selinux/targeted/contexts/users/uberspace_{{ user }}_u
 
     - name: Add UNIX user to SELinux context
-      shell: usermod -Z "{{ user }}_u" "{{ user }}"
+      shell: usermod -Z "uberspace_{{ user }}_u" "{{ user }}"
       register: userstate
 
     - name: Create user httpdocs
       file:
         path: /var/www/virtual/{{ user }}
         state: directory
-        seuser: "{{ user }}_u"
+        seuser: "uberspace_{{ user }}_u"
         owner: "{{ user }}"
         group: "{{ user }}"
 
     - name: Confine user to home directory
       file:
-        path: /home/{{ user }}
+        path: "{{ item }}"
         state: directory
-        seuser: "{{ user }}_u"
+        seuser: "uberspace_{{ user }}_u"
+      with_items:
+        - /home/{{ user }}
+        - /var/www/virtual/{{ user }}
 
     - name: Create SSH configuration directory
       file:
@@ -180,9 +185,6 @@
         owner: "{{ user }}"
         group: "{{ user }}"
         recurse: true
-
-    - name: Enable outgoing SSH for {{ user }}
-      command: semanage port -m -t {{ user }}_port_t -p tcp 22
 
     - name: Enable VirtualHost configuration for {{ user }}
       template:

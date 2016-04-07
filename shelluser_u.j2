@@ -1,8 +1,8 @@
 # {{ ansible_managed }}
 
-{{ user }}_r:{{ user }}_t:s0  {{ user }}_r:{{ user }}_t
-system_r:crond_t                {{ user }}_r:{{ user }}_t
-system_r:initrc_su_t            {{ user }}_r:{{ user }}_t
-system_r:local_login_t          {{ user }}_r:{{ user }}_t
-system_r:remote_login_t         {{ user }}_r:{{ user }}_t
-system_r:sshd_t                 {{ user }}_r:{{ user }}_t
+uberspace_{{ user }}_r:uberspace_{{ user }}_t:s0  uberspace_{{ user }}_r:uberspace_{{ user }}_t
+system_r:crond_t                                  uberspace_{{ user }}_r:uberspace_{{ user }}_t
+system_r:initrc_su_t                              uberspace_{{ user }}_r:uberspace_{{ user }}_t
+system_r:local_login_t                            uberspace_{{ user }}_r:uberspace_{{ user }}_t
+system_r:remote_login_t                           uberspace_{{ user }}_r:uberspace_{{ user }}_t
+system_r:sshd_t                                   uberspace_{{ user }}_r:uberspace_{{ user }}_t
