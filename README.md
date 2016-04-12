@@ -26,9 +26,9 @@ You can also cross-check the configured limits using the following commands:
 
 ```
 $ systemctl show -p CPUShares user-1001.slice
-MemoryLimit=1073741824
-$ systemctl show -p MemoryLimit user-1001.slice
 CPUShares=512
+$ systemctl show -p MemoryLimit user-1001.slice
+MemoryLimit=1073741824
 ```
 
 # SELinux Basic Usage
