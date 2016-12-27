@@ -5,7 +5,7 @@
   become: yes
 
   vars:
-    user: anotheruser
+    user: poc_testuser
 
   handlers:
     - name: reload httpd
