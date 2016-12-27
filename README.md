@@ -1,7 +1,6 @@
 # What this is and isn't
-
-This is a prototype for a shared hosting environment where users are allowed to execute arbitrary
-code and bind their apps to all non-privileged ports. During the development of a new  
+This is a proof of concet for a shared hosting environment where users are allowed to execute arbitrary
+code and bind their apps to all non-privileged ports in a secure manner. During the development of a new  
 version of [Uberspace](https://uberspace.de) I was trying to come up with a solution to the
 following problems:
 
@@ -34,8 +33,8 @@ overwhelming, outdated and often distribution-vendor-§specific.
 
 My approach is based on [a blog post by Major Hayden](https://major.io/2013/07/05/confine-untrusted-users-including-your-children-with-selinux/). 
 
-This attempt should allow for anything that unprivileged users are supposed to be doing on a Linux
-system while limiting the scope of the impact of a local root exploit on a shared hosting system
+This attempt should allow users to do anything that unprivileged users are do on a Linux
+system while limiting the scope of the impact of e.g. a local root exploit on a shared hosting system
 like Uberspace, as long as the attack isn't targeted against SELinux in the Linux kernel.
 
 ## Why not use containers?
@@ -49,9 +48,9 @@ hosting and not a PAAS-solution, containers where not an option for the version 
 I do not know if any of this will end up in the next version of Uberspace because I am no longer
 working for Uberspace. Please direct all questions regarding the new version of Uberspace to either
 [hallo@uberspace.de](mailto:hallo@uberspace.de) or to
-[@ubernauten](https://twitter.com/ubernauten). 
+[\@ubernauten on Twitter](https://twitter.com/ubernauten). 
 
-Please consider this as a proof of concept.
+Please consider this as a proof of concept. Do not use this in production without further testing!
 
 # Control Groups
 We can confine users to only use specified resources.
