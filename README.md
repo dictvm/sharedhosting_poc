@@ -2,7 +2,7 @@
 
 This is a prototype for a shared hosting environment where users are allowed to execute arbitrary
 code and bind their apps to all non-privileged ports. During the development of a new  
-version of (https://uberspace.de)[Uberspace] I was trying to come up with a solution to the
+version of [Uberspace](https://uberspace.de) I was trying to come up with a solution to the
 following problems:
 
 ## Resource limits
@@ -32,7 +32,7 @@ Uberspace currently disables SELinux. Everyone is scared of the complexity of SE
 just disables SELinux. According to my own experience, documentation of SELinux is also pretty
 overwhelming, outdated and often distribution-vendor-§specific. 
 
-My approach is based on (https://major.io/2013/07/05/confine-untrusted-users-including-your-children-with-selinux/)[a blog post by Major Hayden]. 
+My approach is based on [a blog post by Major Hayden](https://major.io/2013/07/05/confine-untrusted-users-including-your-children-with-selinux/). 
 
 This attempt should allow for anything that unprivileged users are supposed to be doing on a Linux
 system while limiting the scope of the impact of a local root exploit on a shared hosting system
@@ -48,8 +48,8 @@ hosting and not a PAAS-solution, containers where not an option for the version 
 
 I do not know if any of this will end up in the next version of Uberspace because I am no longer
 working for Uberspace. Please direct all questions regarding the new version of Uberspace to either
-(mailto:hallo@uberspace.de)[hallo@uberspace.de] or to
-(https://twitter.com/ubernauten)[@ubernauten]. 
+[hallo@uberspace.de](mailto:hallo@uberspace.de) or to
+[@ubernauten](https://twitter.com/ubernauten). 
 
 Please consider this as a proof of concept.
 
